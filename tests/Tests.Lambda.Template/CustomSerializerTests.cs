@@ -64,10 +64,9 @@ namespace Tests.Lambda
         {
             protected override void ConfigureServices(IServiceCollection services, IExecutionEnvironment executionEnvironment)
             {
-                services.UseSqsHandler<SomeEvent, DummyHandler>(false, new CustomSerializer());
+                services.UseSqsHandler<SomeEvent, DummyHandler>(serializer: new CustomSerializer());
             }
         }
-
 
         private class DummyFunctionNoChanges : EventFunction<SQSEvent>
         {
