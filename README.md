@@ -89,7 +89,6 @@ public class CustomSerializer : ISerializer
 	public T Deserialize<T>(string input)
 	{
 		// do some fancy 'serializing'
-		// use input parameter instead of the hardcoded value here
 		return JsonSerializer.Deserialize<T>(input);
 	}
 }
