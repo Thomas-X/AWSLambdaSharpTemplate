@@ -37,6 +37,8 @@ namespace Kralizek.Lambda
         {
             services.AddOptions();
 
+            services.AddSingleton<ISerializer, SystemTextJsonSerializer>();
+
             services.AddTransient<IEventHandler<SNSEvent>, SnsEventHandler<TNotification>>();
 
             if (configure != null)

@@ -29,6 +29,8 @@ namespace Tests.Lambda.Sqs
         {
             configurator.Services.AddLogging().AddOptions();
 
+            configurator.Services.AddTransient<ISerializer, SystemTextJsonSerializer>();
+
             configurator.UseParallelExecution(maxDegreeOfParallelism);
 
             var sp = configurator.Services.BuildServiceProvider();
@@ -44,6 +46,8 @@ namespace Tests.Lambda.Sqs
         public void UseParallelExecution_overrides_default_registration(int? maxDegreeOfParallelism, SqsLambdaConfigurator<TestMessage, TestMessageHandler> configurator)
         {
             configurator.Services.AddLogging().AddOptions();
+
+            configurator.Services.AddTransient<ISerializer, SystemTextJsonSerializer>();
 
             configurator.Services.AddTransient<IEventHandler<SQSEvent>, SqsEventHandler<TestMessage>>();
 

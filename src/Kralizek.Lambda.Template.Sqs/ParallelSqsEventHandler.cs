@@ -19,11 +19,13 @@ namespace Kralizek.Lambda
     {
         private readonly ILogger _logger;
         private readonly IServiceProvider _serviceProvider;
+        private readonly ISerializer _serializer;
         private readonly ParallelSqsExecutionOptions _options;
 
-        public ParallelSqsEventHandler(IServiceProvider serviceProvider, ILoggerFactory loggerFactory, IOptions<ParallelSqsExecutionOptions> options)
+        public ParallelSqsEventHandler(IServiceProvider serviceProvider, ISerializer serializer, ILoggerFactory loggerFactory, IOptions<ParallelSqsExecutionOptions> options)
         {
             _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
+            _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
             _logger = loggerFactory?.CreateLogger("SqsForEachAsyncEventHandler") ?? throw new ArgumentNullException(nameof(loggerFactory));
             _options = options?.Value ?? throw new ArgumentNullException(nameof(options));
         }
@@ -39,10 +41,7 @@ namespace Kralizek.Lambda
                         var sqsMessage = singleSqsMessage.Body;
                         _logger.LogDebug($"Message received: {sqsMessage}");
 
-                        var serializer = _serviceProvider.GetService<ISerializer>();
-                        var message = serializer != null
-                            ? serializer.Deserialize<TMessage>(sqsMessage)
-                            : JsonSerializer.Deserialize<TMessage>(sqsMessage);
+                        var message = _serializer.Deserialize<TMessage>(sqsMessage);
 
                         var messageHandler = scope.ServiceProvider.GetService<IMessageHandler<TMessage>>();
                         if (messageHandler == null)

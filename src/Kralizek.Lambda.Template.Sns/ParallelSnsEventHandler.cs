@@ -19,11 +19,13 @@ namespace Kralizek.Lambda
     {
         private readonly ILogger _logger;
         private readonly IServiceProvider _serviceProvider;
+        private readonly ISerializer _serializer;
         private readonly ParallelSnsExecutionOptions _options;
 
-        public ParallelSnsEventHandler(IServiceProvider serviceProvider, ILoggerFactory loggerFactory, IOptions<ParallelSnsExecutionOptions> options)
+        public ParallelSnsEventHandler(IServiceProvider serviceProvider, ISerializer serializer, ILoggerFactory loggerFactory, IOptions<ParallelSnsExecutionOptions> options)
         {
             _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
+            _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
             _logger = loggerFactory?.CreateLogger("SnsForEachAsyncEventHandler") ?? throw new ArgumentNullException(nameof(loggerFactory));
             _options = options?.Value ?? throw new ArgumentNullException(nameof(options));
         }
@@ -38,10 +40,7 @@ namespace Kralizek.Lambda
                     {
                         var message = record.Sns.Message;
 
-                        var serializer = _serviceProvider.GetService<ISerializer>();
-                        var notification = serializer != null
-                            ? serializer.Deserialize<TNotification>(message)
-                            : JsonSerializer.Deserialize<TNotification>(message);
+                        var notification = _serializer.Deserialize<TNotification>(message);
 
                         _logger.LogDebug($"Message received: {message}");
 

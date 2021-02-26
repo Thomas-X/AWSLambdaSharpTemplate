@@ -14,11 +14,13 @@ namespace Kralizek.Lambda
     {
         private readonly ILogger _logger;
         private readonly IServiceProvider _serviceProvider;
+        private readonly ISerializer _serializer;
 
-        public SnsEventHandler(IServiceProvider serviceProvider, ILoggerFactory loggerFactory)
+        public SnsEventHandler(IServiceProvider serviceProvider, ISerializer serializer, ILoggerFactory loggerFactory)
         {
             _logger = loggerFactory?.CreateLogger("SnsEventHandler") ?? throw new ArgumentNullException(nameof(loggerFactory));
             _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
+            _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
         }
 
         public async Task HandleAsync(SNSEvent input, ILambdaContext context)
@@ -29,10 +31,7 @@ namespace Kralizek.Lambda
                 {
                     var message = record.Sns.Message;
 
-                    var serializer = _serviceProvider.GetService<ISerializer>();
-                    var notification = serializer != null
-                        ? serializer.Deserialize<TNotification>(message)
-                        : JsonSerializer.Deserialize<TNotification>(message);
+                    var notification = _serializer.Deserialize<TNotification>(message);
                     
                     var handler = scope.ServiceProvider.GetService<INotificationHandler<TNotification>>();
 

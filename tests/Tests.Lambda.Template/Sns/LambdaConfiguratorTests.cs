@@ -28,6 +28,8 @@ namespace Tests.Lambda.Sns
         {
             configurator.Services.AddLogging();
 
+            configurator.Services.AddTransient<ISerializer, SystemTextJsonSerializer>();
+
             configurator.UseParallelExecution(maxDegreeOfParallelism);
 
             var sp = configurator.Services.BuildServiceProvider();
@@ -43,6 +45,8 @@ namespace Tests.Lambda.Sns
         public void UseParallelExecution_overrides_default_registration(int? maxDegreeOfParallelism, SnsLambdaConfigurator<TestNotification, TestNotificationHandler> configurator)
         {
             configurator.Services.AddLogging();
+
+            configurator.Services.AddTransient<ISerializer, SystemTextJsonSerializer>();
 
             configurator.Services.AddTransient<IEventHandler<SNSEvent>, SnsEventHandler<TestNotification>>();
 
