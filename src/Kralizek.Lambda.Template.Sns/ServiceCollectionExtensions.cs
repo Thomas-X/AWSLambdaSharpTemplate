@@ -6,6 +6,7 @@ namespace Kralizek.Lambda
 {
     public static class ServiceCollectionExtensions
     {
+        [Obsolete("Use UseNotificationHandler<TNotification, THandler>(c => c.UseParallelExecution(maxDegreeOfParallelism))")]
         public static IServiceCollection ConfigureSnsParallelExecution(this IServiceCollection services, int maxDegreeOfParallelism)
         {
             services.Configure<ParallelSnsExecutionOptions>(option => option.MaxDegreeOfParallelism = maxDegreeOfParallelism);
@@ -13,27 +14,39 @@ namespace Kralizek.Lambda
             return services;
         }
 
-        public static IServiceCollection UseNotificationHandler<TNotification, THandler>(this IServiceCollection services, bool enableParallelExecution = false, ISerializer serializer = null)
+        [Obsolete("Use UseNotificationHandler<TNotification, THandler>(c => c.UseParallelExecution())")]
+        public static IServiceCollection UseNotificationHandler<TNotification, THandler>(this IServiceCollection services, bool enableParallelExecution)
             where TNotification : class
             where THandler : class, INotificationHandler<TNotification>
         {
-            services.AddOptions();
-
-            if (serializer != null)
-                services.AddSingleton(sp => serializer);
-
             if (enableParallelExecution)
             {
-                services.AddTransient<IEventHandler<SNSEvent>, ParallelSnsEventHandler<TNotification>>();
+                services.UseNotificationHandler<TNotification, THandler>(c => c.UseParallelExecution());
             }
             else
             {
-                services.AddTransient<IEventHandler<SNSEvent>, SnsEventHandler<TNotification>>();
+                services.UseNotificationHandler<TNotification, THandler>();
+            }
+
+            return services;
+        }
+
+        public static IServiceCollection UseNotificationHandler<TNotification, THandler>(this IServiceCollection services, Action<ILambdaConfigurator<TNotification, THandler>> configure = null)
+            where TNotification : class
+            where THandler : class, INotificationHandler<TNotification>
+        {
+            services.AddTransient<IEventHandler<SNSEvent>, SnsEventHandler<TNotification>>();
+
+            if (configure != null)
+            {
+                var configurator = new LambdaConfigurator<TNotification, THandler>(services);
+
+                configure(configurator);
             }
 
             services.AddTransient<INotificationHandler<TNotification>, THandler>();
 
-            return services;            
+            return services;
         }
     }
 }

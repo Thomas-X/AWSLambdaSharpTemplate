@@ -1,3 +1,4 @@
+using System;
 using Amazon.Lambda.SQSEvents;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -5,29 +6,42 @@ namespace Kralizek.Lambda
 {
     public static class ServiceCollectionExtensions
     {
-        public static IServiceCollection ConfigureSnsParallelExecution(this IServiceCollection services, int maxDegreeOfParallelism)
+        [Obsolete("Use UseSqsHandler<TMessage, THandler>(c => c.UseParallelExecution(maxDegreeOfParallelism))")]
+        public static IServiceCollection ConfigureSqsParallelExecution(this IServiceCollection services, int maxDegreeOfParallelism)
         {
             services.Configure<ParallelSqsExecutionOptions>(option => option.MaxDegreeOfParallelism = maxDegreeOfParallelism);
 
             return services;
         }
 
-        public static IServiceCollection UseSqsHandler<TMessage, THandler>(this IServiceCollection services, bool enableParallelExecution = false, ISerializer serializer = null)
+        [Obsolete("Use UseSqsHandler<TMessage, THandler>(c => c.UseParallelExecution())")]
+        public static IServiceCollection UseSqsHandler<TMessage, THandler>(this IServiceCollection services, bool enableParallelExecution)
             where TMessage : class
             where THandler : class, IMessageHandler<TMessage>
         {
-            services.AddOptions();
-
-            if (serializer != null)
-                services.AddSingleton(sp => serializer);
-
             if (enableParallelExecution)
             {
-                services.AddTransient<IEventHandler<SQSEvent>, ParallelSqsEventHandler<TMessage>>();
+                services.UseSqsHandler<TMessage, THandler>(c => c.UseParallelExecution());
             }
             else
             {
-                services.AddTransient<IEventHandler<SQSEvent>, SqsEventHandler<TMessage>>();
+                services.UseSqsHandler<TMessage, THandler>();
+            }
+
+            return services;
+        }
+
+        public static IServiceCollection UseSqsHandler<TMessage, THandler>(this IServiceCollection services, Action<ILambdaConfigurator<TMessage, THandler>> configure = null)
+            where TMessage : class
+            where THandler : class, IMessageHandler<TMessage>
+        {
+            services.AddTransient<IEventHandler<SQSEvent>, SqsEventHandler<TMessage>>();
+
+            if (configure != null)
+            {
+                var configurator = new LambdaConfigurator<TMessage, THandler>(services);
+
+                configure(configurator);
             }
 
             services.AddTransient<IMessageHandler<TMessage>, THandler>();
