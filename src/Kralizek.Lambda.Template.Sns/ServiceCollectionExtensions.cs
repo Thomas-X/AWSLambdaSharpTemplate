@@ -35,11 +35,13 @@ namespace Kralizek.Lambda
             where TNotification : class
             where THandler : class, INotificationHandler<TNotification>
         {
+            services.AddOptions();
+
             services.AddTransient<IEventHandler<SNSEvent>, SnsEventHandler<TNotification>>();
 
             if (configure != null)
             {
-                var configurator = new LambdaConfigurator<TNotification, THandler>(services);
+                var configurator = new SnsLambdaConfigurator<TNotification, THandler>(services);
 
                 configure(configurator);
             }

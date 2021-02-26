@@ -10,11 +10,11 @@ namespace Kralizek.Lambda
     {
     }
 
-    public class LambdaConfigurator<TMessage, THandler> : ILambdaConfigurator<TMessage, THandler>
+    public class SqsLambdaConfigurator<TMessage, THandler> : ILambdaConfigurator<TMessage, THandler>
         where TMessage : class
         where THandler : class, IMessageHandler<TMessage>
     {
-        public LambdaConfigurator(IServiceCollection services)
+        public SqsLambdaConfigurator(IServiceCollection services)
         {
             Services = services ?? throw new ArgumentNullException(nameof(services));
         }
@@ -32,8 +32,6 @@ namespace Kralizek.Lambda
 
             if (maxDegreeOfParallelism.HasValue)
             {
-                configurator.Services.AddOptions();
-
                 configurator.Services.Configure<ParallelSqsExecutionOptions>(option => option.MaxDegreeOfParallelism = maxDegreeOfParallelism.Value);
             }
 

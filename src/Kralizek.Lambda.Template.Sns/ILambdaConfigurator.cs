@@ -10,11 +10,11 @@ namespace Kralizek.Lambda
     {
     }
 
-    public class LambdaConfigurator<TNotification, THandler> : ILambdaConfigurator<TNotification, THandler>
+    public class SnsLambdaConfigurator<TNotification, THandler> : ILambdaConfigurator<TNotification, THandler>
         where TNotification : class
         where THandler : class, INotificationHandler<TNotification>
     {
-        public LambdaConfigurator(IServiceCollection services)
+        public SnsLambdaConfigurator(IServiceCollection services)
         {
             Services = services ?? throw new ArgumentNullException(nameof(services));
         }
@@ -32,8 +32,6 @@ namespace Kralizek.Lambda
 
             if (maxDegreeOfParallelism.HasValue)
             {
-                configurator.Services.AddOptions();
-
                 configurator.Services.Configure<ParallelSnsExecutionOptions>(option => option.MaxDegreeOfParallelism = maxDegreeOfParallelism.Value);
             }
 

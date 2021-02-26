@@ -35,11 +35,13 @@ namespace Kralizek.Lambda
             where TMessage : class
             where THandler : class, IMessageHandler<TMessage>
         {
+            services.AddOptions();
+
             services.AddTransient<IEventHandler<SQSEvent>, SqsEventHandler<TMessage>>();
 
             if (configure != null)
             {
-                var configurator = new LambdaConfigurator<TMessage, THandler>(services);
+                var configurator = new SqsLambdaConfigurator<TMessage, THandler>(services);
 
                 configure(configurator);
             }
